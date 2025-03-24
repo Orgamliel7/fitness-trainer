@@ -1,6 +1,6 @@
-// src/app/layout.js
 import { Inter } from 'next/font/google'
 import './globals.css'
+import Script from 'next/script'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -25,6 +25,7 @@ export default function RootLayout({ children }) {
       </head>
       <body className={`${inter.className} bg-black text-white min-h-screen`}>
         {children}
+        <Script src="/sw-register.js" strategy="afterInteractive" />
       </body>
     </html>
   )

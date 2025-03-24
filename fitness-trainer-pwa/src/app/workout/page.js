@@ -1,4 +1,3 @@
-// src/app/workout/page.js
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -6,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import ExerciseScreen from '@/components/ExerciseScreen';
 import Timer from '@/components/Timer';
 import useWorkoutStore from '@/store/workoutStore';
+import { playCompleteSound } from '@/utils/sound';
 
 export default function WorkoutPage() {
   const router = useRouter();
@@ -52,6 +52,9 @@ export default function WorkoutPage() {
   // Handle workout completion
   useEffect(() => {
     if (!isActive && currentExercise === null) {
+      // Play completion sound
+      playCompleteSound();
+      
       // Save data to localStorage
       const stats = getWorkoutStats();
       localStorage.setItem('lastWorkout', JSON.stringify({

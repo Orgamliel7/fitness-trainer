@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { playChangeSound } from '@/utils/sound';
 
 export default function Timer({ duration = 5, isActive, isPaused, onComplete }) {
   const [timeLeft, setTimeLeft] = useState(duration);
@@ -9,6 +10,11 @@ export default function Timer({ duration = 5, isActive, isPaused, onComplete }) 
       if (timeLeft > 0) {
         timerRef.current = setTimeout(() => {
           setTimeLeft(prev => prev - 1);
+          
+          // Play sound when time is almost up (at 1 second remaining)
+          if (timeLeft === 2) {
+            playChangeSound();
+          }
         }, 1000);
       } else {
         onComplete();
