@@ -1,63 +1,49 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import useWorkoutStore from '@/store/workoutStore';
+import WorkoutHistory from '@/components/WorkoutHistory';
 
-export default function ResultsPage() {
+export default function HomePage() {
   const router = useRouter();
-  const [stats, setStats] = useState({ duration: 0, calories: 0 });
-  const { getWorkoutStats, initWorkout } = useWorkoutStore();
+  const { initWorkout } = useWorkoutStore();
   
   useEffect(() => {
-    // Get stats from store or localStorage
-    try {
-      const lastWorkout = JSON.parse(localStorage.getItem('lastWorkout'));
-      if (lastWorkout) {
-        setStats({
-          duration: lastWorkout.duration,
-          calories: lastWorkout.calories
-        });
-      } else {
-        setStats(getWorkoutStats());
-      }
-    } catch (error) {
-      console.error('Error retrieving workout stats:', error);
-      setStats(getWorkoutStats());
-    }
-  }, [getWorkoutStats]);
-  
-  const handleNewWorkout = () => {
+    // Initialize a new workout when landing on the home page
     initWorkout(10);
-    router.push('/');
+  }, [initWorkout]);
+  
+  const startWorkout = () => {
+    router.push('/workout');
   };
   
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-6 text-center">
-      <h1 className="text-4xl font-bold mb-8">Workout Complete!</h1>
+    <div className="flex flex-col items-center min-h-screen p-6">
+      <h1 className="text-4xl font-bold mb-8 text-center">Fitness Trainer</h1>
       
-      <div className="bg-gray-900 rounded-lg p-8 mb-10 w-full max-w-md">
-        <div className="flex justify-between items-center mb-6">
-          <div className="text-center flex-1">
-            <p className="text-lg text-gray-400">Duration</p>
-            <p className="text-3xl font-bold">{stats.duration} min</p>
-          </div>
-          
-          <div className="text-center flex-1">
-            <p className="text-lg text-gray-400">Calories</p>
-            <p className="text-3xl font-bold">{stats.calories}</p>
-          </div>
-        </div>
+      <div className="text-center mb-10 max-w-md">
+        <p className="text-lg mb-8">
+          Ready for a random workout? You'll go through a series of exercises,
+          each lasting 5 seconds. Let's get moving!
+        </p>
         
-        <p className="text-gray-400 mb-2">Great job completing your workout!</p>
+        <button 
+          onClick={startWorkout}
+          className="btn btn-primary text-xl"
+        >
+          Start Workout
+        </button>
+        
+        <div className="mt-8 text-gray-400">
+          <p>Includes: Push-Ups, Jumps, Squats</p>
+          <p className="mt-2">Each exercise lasts 5 seconds</p>
+        </div>
       </div>
       
-      <button 
-        onClick={handleNewWorkout}
-        className="btn btn-primary text-xl"
-      >
-        New Workout
-      </button>
+      <div className="w-full max-w-md mt-8">
+        <WorkoutHistory />
+      </div>
     </div>
   );
 }
