@@ -24,8 +24,8 @@ export default function HomePage() {
       
       <div className="text-center mb-10 max-w-md">
         <p className="text-lg mb-8">
-          Ready for a random workout? You'll go through a series of exercises,
-          each lasting 5 seconds. Let's get moving!
+          Ready for a random workout? You&apos;ll go through a series of exercises,
+          each lasting 5 seconds. Let&apos;s get moving!
         </p>
         
         <button 

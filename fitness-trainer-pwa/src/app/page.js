@@ -1,4 +1,3 @@
-// src/app/page.js
 'use client';
 
 import { useRouter } from 'next/navigation';
@@ -23,8 +22,8 @@ export default function HomePage() {
       <h1 className="text-4xl font-bold mb-8">Fitness Trainer</h1>
       
       <p className="text-lg mb-10 max-w-md">
-        Ready for a random workout? You'll go through a series of exercises,
-        each lasting 5 seconds. Let's get moving!
+        Ready for a random workout? You&apos;ll go through a series of exercises,
+        each lasting 5 seconds. Let&apos;s get moving!
       </p>
       
       <button 
