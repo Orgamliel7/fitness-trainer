@@ -10,7 +10,7 @@ const exerciseComponents = {
   'Squat': Squat,
 };
 
-export default function ExerciseScreen({ exerciseName, timeLeft }) {
+export default function ExerciseScreen({ exercise, timeLeft }) {
   const [container, setContainer] = useState(null);
   
   useEffect(() => {
@@ -26,16 +26,16 @@ export default function ExerciseScreen({ exerciseName, timeLeft }) {
     return () => {
       gsap.to(container, { opacity: 0, y: -20, duration: 0.3 });
     };
-  }, [exerciseName, container]);
+  }, [exercise?.name, container]);
   
-  const ExerciseComponent = exerciseComponents[exerciseName] || null;
+  const ExerciseComponent = exerciseComponents[exercise?.name] || null;
   
   return (
     <div 
       ref={setContainer} 
       className="flex flex-col items-center justify-center p-4 h-full"
     >
-      <h2 className="text-2xl font-bold mb-6">{exerciseName}</h2>
+      <h2 className="text-2xl font-bold mb-6">{exercise?.name}</h2>
       {ExerciseComponent && <ExerciseComponent />}
       <div className="mt-8 text-xl font-semibold">{timeLeft}s</div>
     </div>

@@ -1,11 +1,9 @@
-// src/store/workoutStore.js
-// Updated to add local storage support
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { getRandomExercises } from '@/utils/exercises';
 
 const DEFAULT_EXERCISE_DURATION = 5; // in seconds
+const MAX_WORKOUT_HISTORY = 50; // Limit workout history to prevent excessive storage
 
 const useWorkoutStore = create(
   persist(
@@ -14,6 +12,7 @@ const useWorkoutStore = create(
       currentExerciseIndex: 0,
       isActive: false,
       isPaused: false,
+      isWorkoutComplete: false,
       startTime: null,
       pauseStartTime: null,
       totalPausedTime: 0,
@@ -29,6 +28,7 @@ const useWorkoutStore = create(
           currentExerciseIndex: 0,
           isActive: false,
           isPaused: false,
+          isWorkoutComplete: false,
           startTime: null,
           pauseStartTime: null,
           totalPausedTime: 0,
@@ -41,13 +41,15 @@ const useWorkoutStore = create(
         set({
           isActive: true,
           isPaused: false,
+          isWorkoutComplete: false,
           startTime: new Date().toISOString(),
         });
       },
       
       // Pause the workout
       pauseWorkout: () => {
-        if (!get().isPaused && get().isActive) {
+        const { isPaused, isActive } = get();
+        if (!isPaused && isActive) {
           set({
             isPaused: true,
             pauseStartTime: new Date().toISOString(),
@@ -57,13 +59,14 @@ const useWorkoutStore = create(
       
       // Resume the workout
       resumeWorkout: () => {
-        if (get().isPaused) {
-          const pauseStart = new Date(get().pauseStartTime);
+        const { isPaused, pauseStartTime, totalPausedTime } = get();
+        if (isPaused) {
+          const pauseStart = new Date(pauseStartTime);
           const pauseDuration = (new Date() - pauseStart) / 1000; // in seconds
           
           set({
             isPaused: false,
-            totalPausedTime: get().totalPausedTime + pauseDuration,
+            totalPausedTime: totalPausedTime + pauseDuration,
             pauseStartTime: null,
           });
         }
@@ -94,54 +97,63 @@ const useWorkoutStore = create(
       
       // Finish the workout
       finishWorkout: () => {
-        // Update time for the final exercise if workout is active
-        if (get().isActive) {
-          const { currentExerciseIndex, exercises, exerciseMinutes, workoutHistory } = get();
-          const currentExercise = exercises[currentExerciseIndex].name;
-          const currentExerciseTimeMinutes = DEFAULT_EXERCISE_DURATION / 60; // Convert to minutes
+        console.log('finishWorkout called');
+        console.log('Current state:', get());
+      
+        try {
+          // Force completion of all exercises
+          const { currentExerciseIndex, exercises } = get();
           
-          // Update exercise minutes
-          const updatedExerciseMinutes = { ...exerciseMinutes };
-          updatedExerciseMinutes[currentExercise] = (updatedExerciseMinutes[currentExercise] || 0) + currentExerciseTimeMinutes;
+          console.log('Current exercise index:', currentExerciseIndex);
+          console.log('Total exercises:', exercises.length);
+      
+          // Forcibly set to last exercise if not already there
+          if (currentExerciseIndex < exercises.length - 1) {
+            console.log('Forcing to last exercise');
+            set({ currentExerciseIndex: exercises.length - 1 });
+          }
+      
+          // Log before state change
+          console.log('Before state change');
           
-          // Get workout stats
-          const stats = get().getWorkoutStats();
-          
-          // Save to workout history
-          const updatedHistory = [
-            ...workoutHistory,
-            {
-              id: Date.now(),
-              timestamp: new Date().toISOString(),
-              duration: stats.duration,
-              calories: stats.calories,
-              exercises: updatedExerciseMinutes,
-            }
-          ];
-          
-          set({
+          // Comprehensive state update
+          set((state) => ({
             isActive: false,
             isPaused: false,
-            exerciseMinutes: updatedExerciseMinutes,
-            workoutHistory: updatedHistory,
-          });
-          
-          // Save the last workout to localStorage for the results page
+            isWorkoutComplete: true,
+            currentExerciseIndex: exercises.length,
+          }));
+      
+          // Log after state change
+          console.log('After state change');
+          console.log('Updated state:', get());
+      
+          // Attempt to save to localStorage
           if (typeof window !== 'undefined') {
-            localStorage.setItem('lastWorkout', JSON.stringify({
-              timestamp: new Date().toISOString(),
-              duration: stats.duration,
-              calories: stats.calories,
-            }));
+            try {
+              const stats = get().getWorkoutStats();
+              localStorage.setItem('lastWorkout', JSON.stringify({
+                timestamp: new Date().toISOString(),
+                ...stats
+              }));
+              console.log('Workout saved to localStorage');
+            } catch (error) {
+              console.error('Failed to save workout to localStorage', error);
+            }
           }
+      
+          return true;
+        } catch (error) {
+          console.error('Error in finishWorkout:', error);
+          return false;
         }
       },
       
       // Get current workout stats
       getWorkoutStats: () => {
-        const { startTime, totalPausedTime, exerciseMinutes } = get();
+        const { startTime, totalPausedTime, exerciseMinutes, exercises } = get();
         
-        if (!startTime) return { duration: 0, calories: 0 };
+        if (!startTime) return { duration: 0, calories: 0, exercises: {} };
         
         const start = new Date(startTime);
         const endTime = new Date();
@@ -150,37 +162,43 @@ const useWorkoutStore = create(
         
         // Calculate calories based on exercise-specific rates
         const caloriesBurned = Object.entries(exerciseMinutes).reduce((total, [exerciseName, minutes]) => {
-            const exercise = get().exercises.find(ex => ex.name === exerciseName);
-            if (exercise) {
-                return total + (exercise.caloriesPerMinute * minutes);
-            }
-            return total;
-            }, 0);
-            
-            return {
-            duration: Math.round(totalTimeMinutes * 10) / 10, // Round to 1 decimal place
-            calories: Math.round(caloriesBurned),
-            };
-        },
+          const exercise = exercises.find(ex => ex.name === exerciseName);
+          return exercise 
+            ? total + (exercise.caloriesPerMinute * minutes)
+            : total;
+        }, 0);
         
-        // Get current exercise
-        getCurrentExercise: () => {
-            const { exercises, currentExerciseIndex } = get();
-            return exercises[currentExerciseIndex] || null;
-        },
-        
-        // Clear workout history
-        clearWorkoutHistory: () => {
-            set({ workoutHistory: [] });
-        },
-        }),
-        {
-        name: 'fitness-trainer-storage',
-        partialize: (state) => ({
-            workoutHistory: state.workoutHistory,
-        }),
+        return {
+          duration: Math.round(totalTimeMinutes * 10) / 10, // Round to 1 decimal place
+          calories: Math.round(caloriesBurned),
+          exercises: exerciseMinutes,
+        };
+      },
+      
+      // Get current exercise
+      getCurrentExercise: () => {
+        const { exercises, currentExerciseIndex } = get();
+        return currentExerciseIndex < exercises.length ? exercises[currentExerciseIndex] : null;
+      },
+      
+      // Clear workout history
+      clearWorkoutHistory: () => {
+        set({ workoutHistory: [] });
+      },
+    }),
+    {
+      name: 'fitness-trainer-storage',
+      partialize: (state) => ({
+        workoutHistory: state.workoutHistory,
+      }),
+      // Add error handling for storage
+      onRehydrateStorage: () => (state) => {
+        if (!state) {
+          console.warn('Failed to rehydrate workout store');
         }
-    )
-    );
-    
-    export default useWorkoutStore;
+      }
+    }
+  )
+);
+
+export default useWorkoutStore;

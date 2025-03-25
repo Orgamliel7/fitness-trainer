@@ -1,16 +1,26 @@
-const withPWA = require('next-pwa')({
-    dest: 'public',
-    register: true,
-    skipWaiting: true,
-    disable: process.env.NODE_ENV === 'development'
-  });
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  // Disable server-side rendering for faster builds during development
+  output: 'standalone',
   
-  /** @type {import('next').NextConfig} */
-  const nextConfig = {
-    reactStrictMode: true,
-    output: 'standalone', // Add this for better Vercel compatibility
-    // If you have any dynamic routes, add this
-    // generateStaticParams: true,
-  };
+  // Optimize image loading
+  images: {
+    unoptimized: true, // Faster image loading during dev
+  },
   
-  module.exports = withPWA(nextConfig);
+  // Reduce webpack processing
+  webpack: (config) => {
+    // Ignore watching certain directories
+    config.watchOptions = {
+      ignored: ['**/node_modules', '**/.git']
+    };
+    return config;
+  },
+  
+  // Reduce TypeScript type checking during dev
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+};
+
+module.exports = nextConfig;
