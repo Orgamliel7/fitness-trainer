@@ -1,0 +1,21 @@
+{
+  "version": 2,
+  "routes": [
+    {
+      "src": "/manifest.json",
+      "headers": { "cache-control": "public, max-age=0, must-revalidate" },
+      "dest": "public/manifest.json"
+    },
+    {
+      "src": "/sw.js",
+      "headers": { "cache-control": "public, max-age=0, must-revalidate" },
+      "dest": "public/sw.js"
+    }
+  ],
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/next"
+    }
+  ]
+}

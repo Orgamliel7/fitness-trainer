@@ -1,4 +1,3 @@
-// next.config.js
 const withPWA = require('next-pwa')({
     dest: 'public',
     register: true,
@@ -9,6 +8,9 @@ const withPWA = require('next-pwa')({
   /** @type {import('next').NextConfig} */
   const nextConfig = {
     reactStrictMode: true,
+    output: 'standalone', // Add this for better Vercel compatibility
+    // If you have any dynamic routes, add this
+    // generateStaticParams: true,
   };
   
   module.exports = withPWA(nextConfig);
