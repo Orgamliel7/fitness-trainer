@@ -1,26 +1,31 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Disable server-side rendering for faster builds during development
-  output: 'standalone',
+  // Remove standalone output for development
+  // output: 'standalone',
   
-  // Optimize image loading
   images: {
-    unoptimized: true, // Faster image loading during dev
+    unoptimized: true,
   },
   
-  // Reduce webpack processing
-  webpack: (config) => {
-    // Ignore watching certain directories
-    config.watchOptions = {
-      ignored: ['**/node_modules', '**/.git']
-    };
+  webpack: (config, { dev }) => {
+    if (dev) {
+      // More aggressive hot reload settings
+      config.watchOptions = {
+        poll: 1000,
+        aggregateTimeout: 300,
+        ignored: /node_modules/
+      };
+    }
     return config;
   },
   
-  // Reduce TypeScript type checking during dev
+  // Less aggressive type checking
   typescript: {
     ignoreBuildErrors: true,
   },
+
+  // Enable source maps for better debugging
+  productionBrowserSourceMaps: true,
 };
 
 module.exports = nextConfig;
