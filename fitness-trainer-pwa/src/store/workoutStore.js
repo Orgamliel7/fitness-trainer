@@ -95,53 +95,61 @@ const useWorkoutStore = create(
         }
       },
       
+      // Add workout to history
+      addWorkoutToHistory: (workoutStats) => {
+        set((state) => {
+          const updatedHistory = [
+            {
+              ...workoutStats,
+              id: Date.now(), // Unique identifier
+              timestamp: new Date().toISOString()
+            },
+            ...state.workoutHistory
+          ].slice(0, MAX_WORKOUT_HISTORY); // Limit history size
+          
+          return { workoutHistory: updatedHistory };
+        });
+      },
+      
       // Finish the workout
       finishWorkout: () => {
         console.log('finishWorkout called');
-        console.log('Current state:', get());
-      
+        
         try {
-          // Force completion of all exercises
           const { currentExerciseIndex, exercises } = get();
           
-          console.log('Current exercise index:', currentExerciseIndex);
-          console.log('Total exercises:', exercises.length);
-      
           // Forcibly set to last exercise if not already there
           if (currentExerciseIndex < exercises.length - 1) {
-            console.log('Forcing to last exercise');
             set({ currentExerciseIndex: exercises.length - 1 });
           }
-      
-          // Log before state change
-          console.log('Before state change');
           
-          // Comprehensive state update
+          // Get workout stats
+          const workoutStats = get().getWorkoutStats();
+          
+          // Add workout to history
+          get().addWorkoutToHistory(workoutStats);
+          
+          // Update workout state
           set((state) => ({
             isActive: false,
             isPaused: false,
             isWorkoutComplete: true,
             currentExerciseIndex: exercises.length,
           }));
-      
-          // Log after state change
-          console.log('After state change');
-          console.log('Updated state:', get());
-      
-          // Attempt to save to localStorage
+          
+          // Try to save to localStorage
           if (typeof window !== 'undefined') {
             try {
-              const stats = get().getWorkoutStats();
               localStorage.setItem('lastWorkout', JSON.stringify({
                 timestamp: new Date().toISOString(),
-                ...stats
+                ...workoutStats
               }));
               console.log('Workout saved to localStorage');
             } catch (error) {
               console.error('Failed to save workout to localStorage', error);
             }
           }
-      
+          
           return true;
         } catch (error) {
           console.error('Error in finishWorkout:', error);

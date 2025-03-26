@@ -1,11 +1,9 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import ExerciseScreen from '@/components/ExerciseScreen';
 import Timer from '@/components/Timer';
-import WorkoutHistory from '@/components/WorkoutHistory';
 import useWorkoutStore from '@/store/workoutStore';
-import { playCompleteSound } from '@/utils/sound';
 
 export default function WorkoutPage() {
   const router = useRouter();
@@ -52,22 +50,10 @@ export default function WorkoutPage() {
   // Handle workout completion
   useEffect(() => {
     if (isWorkoutComplete) {
-      playCompleteSound();
-      
-      // Save workout stats
       const stats = getWorkoutStats();
-      try {
-        localStorage.setItem('lastWorkout', JSON.stringify({
-          timestamp: new Date().toISOString(),
-          ...stats
-        }));
-      } catch (error) {
-        console.error('Failed to save workout', error);
-      }
-
-      router.push('/results');
+      console.log('Workout Stats:', stats);
     }
-  }, [isWorkoutComplete, router]);
+  }, [isWorkoutComplete]);
 
   // Pause/Resume handler
   const handlePauseToggle = () => {
@@ -99,7 +85,6 @@ export default function WorkoutPage() {
           <h1 className="text-2xl font-bold">
             Exercise {currentExerciseIndex + 1} of {exercises.length}
           </h1>
-          <WorkoutHistory />
         </div>
         
         <div className="flex-grow flex items-center justify-center">
