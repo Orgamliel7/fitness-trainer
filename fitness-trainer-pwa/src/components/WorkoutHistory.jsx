@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import useWorkoutStore from '@/store/workoutStore';
 
 export default function WorkoutHistory() {
-  const { workoutHistory, clearWorkoutHistory } = useWorkoutStore();
+  const { workoutHistory, clearWorkoutHistory, deleteWorkout } = useWorkoutStore();
   const [history, setHistory] = useState([]);
   
   useEffect(() => {
@@ -41,7 +41,15 @@ export default function WorkoutHistory() {
           const formattedTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
           
           return (
-            <div key={workout.id} className="bg-gray-900 rounded-lg p-4">
+            <div key={workout.id} className="bg-gray-900 rounded-lg p-4 relative">
+              <button 
+                onClick={() => deleteWorkout(workout.id)}
+                className="absolute top-2 right-2 text-gray-400 hover:text-red-500 text-xs"
+                aria-label="Delete workout"
+              >
+                ✕
+              </button>
+              
               <div className="flex justify-between items-center mb-2">
                 <div className="text-sm text-gray-400">
                   {formattedDate} at {formattedTime}

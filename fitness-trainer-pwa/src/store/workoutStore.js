@@ -1,9 +1,12 @@
+// This file defines a Zustand store for managing a workout session in a React application. 
+// It handles exercise tracking, workout timing, pausing, history storage, and calorie calculations
+
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { getRandomExercises } from '@/utils/exercises';
 
 const DEFAULT_EXERCISE_DURATION = 5; // in seconds
-const MAX_WORKOUT_HISTORY = 50; // Limit workout history to prevent excessive storage
+const MAX_WORKOUT_HISTORY = 500; // Limit workout history to prevent excessive storage
 
 const useWorkoutStore = create(
   persist(
@@ -192,6 +195,13 @@ const useWorkoutStore = create(
       // Clear workout history
       clearWorkoutHistory: () => {
         set({ workoutHistory: [] });
+      },
+      
+      // Add this new function to delete a specific workout by ID
+      deleteWorkout: (workoutId) => {
+        set((state) => ({
+          workoutHistory: state.workoutHistory.filter(workout => workout.id !== workoutId)
+        }));
       },
     }),
     {
